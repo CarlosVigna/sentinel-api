@@ -14,7 +14,7 @@ public class UserService {
     private final UserRepository userRepository;
 
     public User createUser(User user) {
-        user.setCreatedAt(LocalDateTime.now());
+
         return userRepository.save(user);
     }
 }
