@@ -17,10 +17,10 @@ public class CategoryController {
     private final CategoryService categoryService;
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    public CategoryResponse create(@RequestBody CategoryRequest request) {
-        return categoryService.create(request);
-    }
+@PreAuthorize("hasRole('ADMIN')")
+public CategoryResponse create(@Valid @RequestBody CategoryRequest request) {
+    return categoryService.create(request);
+}
 
     @GetMapping
     public List<CategoryResponse> findAll() {

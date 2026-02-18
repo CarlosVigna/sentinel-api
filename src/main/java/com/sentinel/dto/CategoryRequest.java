@@ -8,5 +8,6 @@ import lombok.*;
 @AllArgsConstructor
 public class CategoryRequest {
 
+    @NotBlank(message = "Nome da categoria é obrigatório.")
     private String name;
 }

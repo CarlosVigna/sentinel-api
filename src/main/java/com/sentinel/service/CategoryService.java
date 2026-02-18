@@ -3,12 +3,13 @@ package com.sentinel.service;
 import com.sentinel.dto.CategoryRequest;
 import com.sentinel.dto.CategoryResponse;
 import com.sentinel.entity.Category;
+import com.sentinel.exception.BusinessException;
+import com.sentinel.exception.ResourceNotFoundException;
 import com.sentinel.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -20,7 +21,7 @@ public class CategoryService {
 
         categoryRepository.findByName(request.getName())
                 .ifPresent(c -> {
-                    throw new RuntimeException("Categoria já existe.");
+                    throw new BusinessException("Categoria já existe.");
                 });
 
         Category category = Category.builder()
@@ -36,10 +37,15 @@ public class CategoryService {
         return categoryRepository.findAll()
                 .stream()
                 .map(c -> new CategoryResponse(c.getId(), c.getName()))
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public void delete(Long id) {
+
+        if (!categoryRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Categoria não encontrada.");
+        }
+
         categoryRepository.deleteById(id);
     }
 }

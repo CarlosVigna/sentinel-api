@@ -19,4 +19,12 @@ public class OccurrenceResponse {
     private String description;
     private String createdBy;
     private LocalDateTime createdAt;
+    private String resolvedBy;
+private LocalDateTime resolvedAt;
+
+private String canceledBy;
+private LocalDateTime canceledAt;
+
+private String reopenedBy;
+private LocalDateTime reopenedAt;
 }

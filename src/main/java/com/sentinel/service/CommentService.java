@@ -4,6 +4,8 @@ import com.sentinel.dto.CommentRequest;
 import com.sentinel.dto.CommentResponse;
 import com.sentinel.entity.*;
 import com.sentinel.enums.OccurrenceStatus;
+import com.sentinel.exception.BusinessException;
+import com.sentinel.exception.ResourceNotFoundException;
 import com.sentinel.repository.CommentRepository;
 import com.sentinel.repository.OccurrenceRepository;
 import com.sentinel.repository.UserRepository;
@@ -13,7 +15,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -25,112 +26,60 @@ public class CommentService {
 
     public CommentResponse addComment(Long occurrenceId, CommentRequest request) {
 
-    String username = SecurityContextHolder.getContext()
-            .getAuthentication()
-            .getName();
+        String username = SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getName();
 
-    User user = userRepository.findByEmail(username)
-            .orElseThrow(() -> new RuntimeException("Usuário não encontrado."));
+        User user = userRepository.findByEmail(username)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado."));
 
-    Occurrence occurrence = occurrenceRepository.findById(occurrenceId)
-            .orElseThrow(() -> new RuntimeException("Ocorrência não encontrada."));
+        Occurrence occurrence = occurrenceRepository.findById(occurrenceId)
+                .orElseThrow(() -> new ResourceNotFoundException("Ocorrência não encontrada."));
 
-    // 🔒 BLOQUEIO PARA OCORRÊNCIAS ENCERRADAS
-    if (occurrence.getStatus() == OccurrenceStatus.RESOLVED ||
-        occurrence.getStatus() == OccurrenceStatus.CANCELED) {
+        if (occurrence.getStatus() == OccurrenceStatus.RESOLVED ||
+                occurrence.getStatus() == OccurrenceStatus.CANCELED) {
+            throw new BusinessException("Não é possível comentar em ocorrência encerrada.");
+        }
 
-        throw new RuntimeException("Não é possível comentar em ocorrência encerrada.");
-    }
+        Comment comment = Comment.builder()
+                .occurrence(occurrence)
+                .author(user)
+                .content(request.getContent())
+                .createdAt(LocalDateTime.now())
+                .build();
 
-    // 🔒 AQUI ENTRARÁ FUTURAMENTE A VALIDAÇÃO DE TURNO
-    // if (!turnoAberto(user)) throw new RuntimeException("Turno fechado.");
+        if (occurrence.getStatus() == OccurrenceStatus.OPEN) {
+            occurrence.setStatus(OccurrenceStatus.IN_PROGRESS);
+        }
 
-    Comment comment = Comment.builder()
-            .occurrence(occurrence)
-            .author(user)
-            .content(request.getContent())
-            .createdAt(LocalDateTime.now())
-            .build();
+        occurrence.setUpdatedAt(LocalDateTime.now());
 
-    // 🔥 Se estava OPEN vira IN_PROGRESS
-    if (occurrence.getStatus() == OccurrenceStatus.OPEN) {
-        occurrence.setStatus(OccurrenceStatus.IN_PROGRESS);
-    }
+        commentRepository.save(comment);
+        occurrenceRepository.save(occurrence);
 
-    occurrence.setUpdatedAt(LocalDateTime.now());
-
-    commentRepository.save(comment);
-    occurrenceRepository.save(occurrence);
-
-    return mapToResponse(comment);
-}
-
-
-    public List<CommentResponse> listByOccurrence(Long occurrenceId) {
-        return commentRepository.findByOccurrenceIdOrderByCreatedAtAsc(occurrenceId)
-                .stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
-    }
-
-    private CommentResponse mapToResponse(Comment comment) {
         return CommentResponse.builder()
                 .id(comment.getId())
-                .author(comment.getAuthor().getEmail())
+                .author(user.getEmail())
                 .content(comment.getContent())
                 .createdAt(comment.getCreatedAt())
                 .build();
     }
 
-    public OccurrenceResponse cancel(Long id) {
+    public List<CommentResponse> listByOccurrence(Long occurrenceId) {
 
-    Occurrence occurrence = occurrenceRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Ocorrência não encontrada."));
+        if (!occurrenceRepository.existsById(occurrenceId)) {
+            throw new ResourceNotFoundException("Ocorrência não encontrada.");
+        }
 
-    if (occurrence.getStatus() == OccurrenceStatus.RESOLVED) {
-        throw new RuntimeException("Não é possível cancelar uma ocorrência resolvida.");
+        return commentRepository
+                .findByOccurrenceIdOrderByCreatedAtAsc(occurrenceId)
+                .stream()
+                .map(c -> CommentResponse.builder()
+                        .id(c.getId())
+                        .author(c.getAuthor().getEmail())
+                        .content(c.getContent())
+                        .createdAt(c.getCreatedAt())
+                        .build())
+                .toList();
     }
-
-    if (occurrence.getStatus() == OccurrenceStatus.CANCELED) {
-        throw new RuntimeException("Ocorrência já está cancelada.");
-    }
-
-    occurrence.setStatus(OccurrenceStatus.CANCELED);
-    occurrence.setUpdatedAt(LocalDateTime.now());
-
-    occurrenceRepository.save(occurrence);
-
-    return mapToResponse(occurrence);
-}
-
-public OccurrenceResponse reopen(Long id) {
-
-    Occurrence occurrence = occurrenceRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Ocorrência não encontrada."));
-
-    String username = SecurityContextHolder.getContext()
-            .getAuthentication()
-            .getName();
-
-    User user = userRepository.findByEmail(username)
-            .orElseThrow(() -> new RuntimeException("Usuário não encontrado."));
-
-    if (user.getRole() != Role.ADMIN) {
-        throw new RuntimeException("Apenas ADMIN pode reabrir ocorrências.");
-    }
-
-    if (occurrence.getStatus() != OccurrenceStatus.RESOLVED &&
-        occurrence.getStatus() != OccurrenceStatus.CANCELED) {
-        throw new RuntimeException("Apenas ocorrências encerradas podem ser reabertas.");
-    }
-
-    occurrence.setStatus(OccurrenceStatus.OPEN);
-    occurrence.setUpdatedAt(LocalDateTime.now());
-
-    occurrenceRepository.save(occurrence);
-
-    return mapToResponse(occurrence);
-}
-
-
 }

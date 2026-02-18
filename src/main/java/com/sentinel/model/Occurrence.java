@@ -42,6 +42,22 @@ public class Occurrence {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+    // Auditoria
+@ManyToOne
+private User resolvedBy;
+
+private LocalDateTime resolvedAt;
+
+@ManyToOne
+private User canceledBy;
+
+private LocalDateTime canceledAt;
+
+@ManyToOne
+private User reopenedBy;
+
+private LocalDateTime reopenedAt;
+
     // ===== MÉTODO PARA GERAR TÍTULO =====
     public void generateTitle() {
         this.title = formatCategory(this.category.getName()) + " - Veículo " + this.plate;

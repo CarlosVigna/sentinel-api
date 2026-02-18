@@ -8,7 +8,11 @@ import lombok.*;
 @AllArgsConstructor
 public class OccurrenceRequest {
 
+    @NotNull(message = "Categoria é obrigatória.")
     private Long categoryId;
+
+    @NotBlank(message = "Placa é obrigatória.")
     private String plate;
+
     private String description;
 }
