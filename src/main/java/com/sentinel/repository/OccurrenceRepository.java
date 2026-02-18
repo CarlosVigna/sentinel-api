@@ -1,16 +1,10 @@
 package com.sentinel.repository;
 
-import com.sentinel.entity.Occurrence;
-import com.sentinel.enums.OccurrenceStatus;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import com.sentinel.model.Occurrence;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
-public interface OccurrenceRepository extends JpaRepository<Occurrence, Long> {
-
-    Page<Occurrence> findByStatus(OccurrenceStatus status, Pageable pageable);
-
-    Page<Occurrence> findByCategoryId(Long categoryId, Pageable pageable);
-
-    Page<Occurrence> findByPlateContainingIgnoreCase(String plate, Pageable pageable);
+public interface OccurrenceRepository extends 
+        JpaRepository<Occurrence, Long>,
+        JpaSpecificationExecutor<Occurrence> {
 }

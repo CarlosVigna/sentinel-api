@@ -17,6 +17,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import com.sentinel.specification.OccurrenceSpecification;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.time.LocalDateTime;
 
@@ -56,35 +58,39 @@ public class OccurrenceService {
     // ========================= LISTAGEM COM PAGINAÇÃO =========================
 
     public Page<OccurrenceResponse> findAll(
-            int page,
-            int size,
-            String sortBy,
-            String direction,
-            OccurrenceStatus status,
-            Long categoryId,
-            String plate
-    ) {
+        int page,
+        int size,
+        String sortBy,
+        String direction,
+        OccurrenceStatus status,
+        Long categoryId,
+        String plate
+) {
 
-        Sort sort = direction.equalsIgnoreCase("desc") ?
-                Sort.by(sortBy).descending() :
-                Sort.by(sortBy).ascending();
+    Sort sort = direction.equalsIgnoreCase("desc") ?
+            Sort.by(sortBy).descending() :
+            Sort.by(sortBy).ascending();
 
-        Pageable pageable = PageRequest.of(page, size, sort);
+    Pageable pageable = PageRequest.of(page, size, sort);
 
-        Page<Occurrence> result;
+    Specification<Occurrence> spec = Specification.where(null);
 
-        if (status != null) {
-            result = occurrenceRepository.findByStatus(status, pageable);
-        } else if (categoryId != null) {
-            result = occurrenceRepository.findByCategoryId(categoryId, pageable);
-        } else if (plate != null) {
-            result = occurrenceRepository.findByPlateContainingIgnoreCase(plate, pageable);
-        } else {
-            result = occurrenceRepository.findAll(pageable);
-        }
-
-        return result.map(this::mapToResponse);
+    if (status != null) {
+        spec = spec.and(OccurrenceSpecification.hasStatus(status));
     }
+
+    if (categoryId != null) {
+        spec = spec.and(OccurrenceSpecification.hasCategory(categoryId));
+    }
+
+    if (plate != null && !plate.isBlank()) {
+        spec = spec.and(OccurrenceSpecification.hasPlate(plate));
+    }
+
+    Page<Occurrence> result = occurrenceRepository.findAll(spec, pageable);
+
+    return result.map(this::mapToResponse);
+}
 
     // ========================= RESOLVE =========================
 
