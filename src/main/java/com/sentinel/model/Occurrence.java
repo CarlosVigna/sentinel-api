@@ -1,0 +1,86 @@
+package com.sentinel.model;
+
+import com.sentinel.enums.OccurrenceStatus;
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.time.LocalDateTime;
+
+@Entity
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Occurrence {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private OccurrenceStatus status;
+
+    @ManyToOne
+    @JoinColumn(nullable = false)
+    private Category category;
+
+    @ManyToOne
+    @JoinColumn(name = "protocol_id")
+    private Protocol protocol;
+
+    @Column(nullable = false)
+    private String plate;
+
+    @Column(nullable = false)
+    private String title;
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String textoResponsaveis;
+
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String textoMotorista;
+
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String textoInterno;
+
+    @ManyToOne
+    @JoinColumn(nullable = false)
+    private User createdBy;
+
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+
+    // Auditoria
+    @ManyToOne
+    private User resolvedBy;
+
+    private LocalDateTime resolvedAt;
+
+    @ManyToOne
+    private User canceledBy;
+
+    private LocalDateTime canceledAt;
+
+    @ManyToOne
+    private User reopenedBy;
+
+    private LocalDateTime reopenedAt;
+
+    // ===== MÉTODO PARA GERAR TÍTULO =====
+    public void generateTitle() {
+        this.title = formatCategory(this.category.getName()) + " - Veículo " + this.plate;
+    }
+
+    private String formatCategory(String name) {
+        if (name == null || name.isBlank()) {
+            return "";
+        }
+
+        return name.substring(0, 1).toUpperCase() + name.substring(1).toLowerCase();
+    }
+}
