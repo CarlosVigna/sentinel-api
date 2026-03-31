@@ -84,6 +84,10 @@ public class User {
         return role;
     }
 
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
     public void setRole(Role role) {
         this.role = role;
     }

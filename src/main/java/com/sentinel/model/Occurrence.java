@@ -23,7 +23,7 @@ public class Occurrence {
     private OccurrenceStatus status;
 
     @ManyToOne
-    @JoinColumn(nullable = false)
+    @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
     @ManyToOne
@@ -49,29 +49,30 @@ public class Occurrence {
     private String textoInterno;
 
     @ManyToOne
-    @JoinColumn(nullable = false)
+    @JoinColumn(name = "created_by_id", nullable = false)
     private User createdBy;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    // Auditoria
     @ManyToOne
+    @JoinColumn(name = "resolved_by_id")
     private User resolvedBy;
 
     private LocalDateTime resolvedAt;
 
     @ManyToOne
+    @JoinColumn(name = "canceled_by_id")
     private User canceledBy;
 
     private LocalDateTime canceledAt;
 
     @ManyToOne
+    @JoinColumn(name = "reopened_by_id")
     private User reopenedBy;
 
     private LocalDateTime reopenedAt;
 
-    // ===== MÉTODO PARA GERAR TÍTULO =====
     public void generateTitle() {
         this.title = formatCategory(this.category.getName()) + " - Veículo " + this.plate;
     }

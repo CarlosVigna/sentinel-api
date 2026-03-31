@@ -31,7 +31,16 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth ->
                         auth
                                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                                .requestMatchers("/auth/**").permitAll()
+
+                                .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
+
+                                .requestMatchers(HttpMethod.GET, "/users/me").authenticated()
+                                .requestMatchers(HttpMethod.PATCH, "/users/me/password").authenticated()
+
+                                .requestMatchers(HttpMethod.GET, "/users/**").hasRole("ADMIN")
+                                .requestMatchers(HttpMethod.POST, "/users/**").hasRole("ADMIN")
+                                .requestMatchers(HttpMethod.PUT, "/users/**").hasRole("ADMIN")
+                                .requestMatchers(HttpMethod.DELETE, "/users/**").hasRole("ADMIN")
 
                                 .requestMatchers(HttpMethod.GET, "/categories/**").authenticated()
                                 .requestMatchers(HttpMethod.POST, "/categories/**").hasRole("ADMIN")

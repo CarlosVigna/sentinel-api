@@ -31,4 +31,13 @@ public class OccurrenceResponse {
     private String createdByName;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    private String resolvedByName;
+    private LocalDateTime resolvedAt;
+
+    private String canceledByName;
+    private LocalDateTime canceledAt;
+
+    private String reopenedByName;
+    private LocalDateTime reopenedAt;
 }
