@@ -28,31 +28,30 @@ public class SecurityConfig {
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                .authorizeHttpRequests(auth ->
-                        auth
-                                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                                .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
 
-                                .requestMatchers(HttpMethod.GET, "/users/me").authenticated()
-                                .requestMatchers(HttpMethod.PATCH, "/users/me/password").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/users/me").authenticated()
+                        .requestMatchers(HttpMethod.PATCH, "/users/me/password").authenticated()
 
-                                .requestMatchers(HttpMethod.GET, "/users/**").hasRole("ADMIN")
-                                .requestMatchers(HttpMethod.POST, "/users/**").hasRole("ADMIN")
-                                .requestMatchers(HttpMethod.PUT, "/users/**").hasRole("ADMIN")
-                                .requestMatchers(HttpMethod.DELETE, "/users/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/users/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/users/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/users/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/users/**").hasRole("ADMIN")
 
-                                .requestMatchers(HttpMethod.GET, "/categories/**").authenticated()
-                                .requestMatchers(HttpMethod.POST, "/categories/**").hasRole("ADMIN")
-                                .requestMatchers(HttpMethod.PUT, "/categories/**").hasRole("ADMIN")
-                                .requestMatchers(HttpMethod.DELETE, "/categories/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/categories/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/categories/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/categories/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/categories/**").hasRole("ADMIN")
 
-                                .requestMatchers(HttpMethod.GET, "/protocols/**").authenticated()
-                                .requestMatchers(HttpMethod.POST, "/protocols/**").hasRole("ADMIN")
-                                .requestMatchers(HttpMethod.PUT, "/protocols/**").hasRole("ADMIN")
-                                .requestMatchers(HttpMethod.DELETE, "/protocols/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/protocols/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/protocols/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/protocols/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/protocols/**").hasRole("ADMIN")
 
-                                .anyRequest().authenticated()
+                        .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
