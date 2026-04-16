@@ -1,5 +1,6 @@
 package com.sentinel.service;
 
+import com.sentinel.dto.OccurrenceReportDTO;
 import com.sentinel.dto.OccurrenceRequest;
 import com.sentinel.dto.OccurrenceResponse;
 import com.sentinel.dto.OccurrenceUpdateRequest;
@@ -20,6 +21,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +31,9 @@ public class OccurrenceService {
     private final CategoryRepository categoryRepository;
     private final ProtocolRepository protocolRepository;
 
+    // =========================
+    // CREATE
+    // =========================
     public OccurrenceResponse create(OccurrenceRequest request) {
         User user = getAuthenticatedUser();
 
@@ -62,18 +67,51 @@ public class OccurrenceService {
         return toResponse(saved);
     }
 
-    public Page<OccurrenceResponse> findAll(int page, int size) {
-        return occurrenceRepository.findAll(PageRequest.of(page, size))
-                .map(this::toResponse);
+    // =========================
+    // LISTAGEM PADRÃO
+    // =========================
+    public Page<OccurrenceResponse> findAll(int page, int size, String status) {
+        PageRequest pageable = PageRequest.of(page, size);
+
+        Page<Occurrence> occurrences;
+
+        if (status == null || status.isBlank()) {
+            occurrences = occurrenceRepository.findAll(pageable);
+        } else {
+            OccurrenceStatus occurrenceStatus;
+            try {
+                occurrenceStatus = OccurrenceStatus.valueOf(status.toUpperCase());
+            } catch (IllegalArgumentException ex) {
+                throw new BusinessException("Status inválido.");
+            }
+
+            occurrences = occurrenceRepository.findByStatus(occurrenceStatus, pageable);
+        }
+
+        return occurrences.map(this::toResponse);
     }
 
+    // =========================
+    // FIND BY ID
+    // =========================
+    public OccurrenceResponse findById(Long id) {
+        Occurrence occurrence = occurrenceRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Ocorrência não encontrada."));
+
+        return toResponse(occurrence);
+    }
+
+    // =========================
+    // UPDATE
+    // =========================
     public OccurrenceResponse update(Long id, OccurrenceUpdateRequest request) {
         User user = getAuthenticatedUser();
 
         Occurrence occurrence = occurrenceRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Ocorrência não encontrada."));
 
-        if (occurrence.getStatus() == OccurrenceStatus.RESOLVED || occurrence.getStatus() == OccurrenceStatus.CANCELED) {
+        if (occurrence.getStatus() == OccurrenceStatus.RESOLVED ||
+                occurrence.getStatus() == OccurrenceStatus.CANCELED) {
             throw new BusinessException("Não é possível editar uma ocorrência encerrada.");
         }
 
@@ -100,6 +138,9 @@ public class OccurrenceService {
         return toResponse(saved);
     }
 
+    // =========================
+    // RESOLVE
+    // =========================
     public OccurrenceResponse resolve(Long id) {
         User user = getAuthenticatedUser();
 
@@ -123,6 +164,9 @@ public class OccurrenceService {
         return toResponse(saved);
     }
 
+    // =========================
+    // CANCEL
+    // =========================
     public OccurrenceResponse cancel(Long id) {
         User user = getAuthenticatedUser();
 
@@ -146,6 +190,9 @@ public class OccurrenceService {
         return toResponse(saved);
     }
 
+    // =========================
+    // REOPEN
+    // =========================
     public OccurrenceResponse reopen(Long id) {
         User user = getAuthenticatedUser();
 
@@ -171,6 +218,42 @@ public class OccurrenceService {
         return toResponse(saved);
     }
 
+    // =========================
+    // 🔥 REPORT (NOVO)
+    // =========================
+    public List<OccurrenceReportDTO> getReport(
+            String status,
+            Long categoryId,
+            String plate
+    ) {
+
+        List<Occurrence> occurrences = occurrenceRepository.findAll();
+
+        return occurrences.stream()
+                .filter(o -> status == null || o.getStatus().name().equalsIgnoreCase(status))
+                .filter(o -> categoryId == null ||
+                        (o.getCategory() != null && o.getCategory().getId().equals(categoryId)))
+                .filter(o -> plate == null ||
+                        o.getPlate().toLowerCase().contains(plate.toLowerCase()))
+                .map(o -> new OccurrenceReportDTO(
+                        o.getId(),
+                        o.getCategory() != null ? o.getCategory().getName() : null,
+                        o.getPlate(),
+                        o.getStatus().name(),
+                        o.getCreatedBy() != null ? o.getCreatedBy().getNome() : null,
+                        o.getCreatedAt(),
+                        o.getUpdatedAt(),
+                        o.getResolvedBy() != null ? o.getResolvedBy().getNome() : null,
+                        o.getResolvedAt(),
+                        o.getCanceledBy() != null ? o.getCanceledBy().getNome() : null,
+                        o.getCanceledAt()
+                ))
+                .toList();
+    }
+
+    // =========================
+    // HELPERS
+    // =========================
     private User getAuthenticatedUser() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
@@ -212,8 +295,6 @@ public class OccurrenceService {
         return value.trim();
     }
 
-
-
     private OccurrenceResponse toResponse(Occurrence occurrence) {
         return OccurrenceResponse.builder()
                 .id(occurrence.getId())
@@ -238,32 +319,5 @@ public class OccurrenceService {
                 .reopenedByName(occurrence.getReopenedBy() != null ? occurrence.getReopenedBy().getNome() : null)
                 .reopenedAt(occurrence.getReopenedAt())
                 .build();
-    }
-    public Page<OccurrenceResponse> findAll(int page, int size, String status) {
-        PageRequest pageable = PageRequest.of(page, size);
-
-        Page<Occurrence> occurrences;
-
-        if (status == null || status.isBlank()) {
-            occurrences = occurrenceRepository.findAll(pageable);
-        } else {
-            OccurrenceStatus occurrenceStatus;
-            try {
-                occurrenceStatus = OccurrenceStatus.valueOf(status.toUpperCase());
-            } catch (IllegalArgumentException ex) {
-                throw new BusinessException("Status inválido.");
-            }
-
-            occurrences = occurrenceRepository.findByStatus(occurrenceStatus, pageable);
-        }
-
-        return occurrences.map(this::toResponse);
-    }
-
-    public OccurrenceResponse findById(Long id) {
-        Occurrence occurrence = occurrenceRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Ocorrência não encontrada."));
-
-        return toResponse(occurrence);
     }
 }

@@ -1,5 +1,6 @@
 package com.sentinel.controller;
 
+import com.sentinel.dto.OccurrenceReportDTO;
 import com.sentinel.dto.OccurrenceRequest;
 import com.sentinel.dto.OccurrenceResponse;
 import com.sentinel.dto.OccurrenceUpdateRequest;
@@ -7,7 +8,10 @@ import com.sentinel.service.OccurrenceService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/occurrences")
@@ -57,4 +61,16 @@ public class OccurrenceController {
     public OccurrenceResponse reopen(@PathVariable Long id) {
         return occurrenceService.reopen(id);
     }
+
+    @GetMapping("/report")
+    public ResponseEntity<List<OccurrenceReportDTO>> report(
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) String plate
+    ) {
+        return ResponseEntity.ok(
+                occurrenceService.getReport(status, categoryId, plate)
+        );
+    }
+
 }
