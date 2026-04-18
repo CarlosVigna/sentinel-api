@@ -247,7 +247,7 @@ public class OccurrenceService {
                         o.getResolvedAt(),
                         o.getCanceledBy() != null ? o.getCanceledBy().getNome() : null,
                         o.getCanceledAt(),
-                        o.getDescription()
+                        o.getDescription() != null ? o.getDescription() : "-"
                 ))
                 .toList();
     }
