@@ -134,7 +134,6 @@ public class ReportService {
             resolvedTable.addCell(o.getStatus().name());
             resolvedTable.addCell(o.getResolvedBy() != null ? o.getResolvedBy().getNome() : "-");
             resolvedTable.addCell(o.getResolvedAt() != null ? o.getResolvedAt().toString() : "-");
-            resolvedTable.addCell(o.getResolvedAt() != null ? o.getResolvedAt().toString() : "-");
             resolvedTable.addCell(o.getDescription() != null ? o.getDescription() : "-");
         }
 
