@@ -41,28 +41,32 @@ public class ReportService {
 
         // 🔴 EM ABERTO
         sb.append("🔴 EM ABERTO\n");
-        sb.append("Placa | Categoria | Status | Criado Por | Data\n");
+        sb.append("Placa | Categoria | Status | Resolvido Por | Data | Observações\n");
 
         for (Occurrence o : open) {
             sb.append(o.getPlate()).append(" | ")
                     .append(o.getCategory().getName()).append(" | ")
                     .append(o.getStatus()).append(" | ")
                     .append(o.getCreatedBy().getNome()).append(" | ")
-                    .append(o.getCreatedAt()).append("\n");
+                    .append(o.getCreatedAt()).append(" | ")
+                    .append(o.getDescription() != null ? o.getDescription() : "-")
+                    .append("\n");
         }
 
         sb.append("\n");
 
         // 🟢 RESOLVIDAS
         sb.append("🟢 RESOLVIDAS\n");
-        sb.append("Placa | Categoria | Status | Resolvido Por | Data\n");
+        sb.append("Placa | Categoria | Status | Criado Por | Data | Observações\n");
 
         for (Occurrence o : resolved) {
             sb.append(o.getPlate()).append(" | ")
                     .append(o.getCategory().getName()).append(" | ")
                     .append(o.getStatus()).append(" | ")
                     .append(o.getResolvedBy() != null ? o.getResolvedBy().getNome() : "-").append(" | ")
-                    .append(o.getResolvedAt()).append("\n");
+                    .append(o.getResolvedAt()).append(" | ")
+                    .append(o.getDescription() != null ? o.getDescription() : "-")
+                    .append("\n");
         }
 
         return sb.toString();
@@ -93,12 +97,13 @@ public class ReportService {
         // 🔴 EM ABERTO
         document.add(new Paragraph("EM ABERTO").setBold());
 
-        Table openTable = new Table(5);
+        Table openTable = new Table(6);
         openTable.addHeaderCell("Placa");
         openTable.addHeaderCell("Categoria");
         openTable.addHeaderCell("Status");
         openTable.addHeaderCell("Criado Por");
         openTable.addHeaderCell("Data");
+        openTable.addHeaderCell("Observações");
 
         for (Occurrence o : open) {
             openTable.addCell(o.getPlate());
@@ -106,6 +111,7 @@ public class ReportService {
             openTable.addCell(o.getStatus().name());
             openTable.addCell(o.getCreatedBy().getNome());
             openTable.addCell(o.getCreatedAt().toString());
+            openTable.addCell(o.getDescription() != null ? o.getDescription() : "-");
         }
 
         document.add(openTable);
@@ -114,12 +120,13 @@ public class ReportService {
         // 🟢 RESOLVIDAS
         document.add(new Paragraph("RESOLVIDAS").setBold());
 
-        Table resolvedTable = new Table(5);
+        Table resolvedTable = new Table(6);
         resolvedTable.addHeaderCell("Placa");
         resolvedTable.addHeaderCell("Categoria");
         resolvedTable.addHeaderCell("Status");
         resolvedTable.addHeaderCell("Resolvido Por");
         resolvedTable.addHeaderCell("Data");
+        resolvedTable.addHeaderCell("Observações");
 
         for (Occurrence o : resolved) {
             resolvedTable.addCell(o.getPlate());
@@ -127,6 +134,8 @@ public class ReportService {
             resolvedTable.addCell(o.getStatus().name());
             resolvedTable.addCell(o.getResolvedBy() != null ? o.getResolvedBy().getNome() : "-");
             resolvedTable.addCell(o.getResolvedAt() != null ? o.getResolvedAt().toString() : "-");
+            resolvedTable.addCell(o.getResolvedAt() != null ? o.getResolvedAt().toString() : "-");
+            resolvedTable.addCell(o.getDescription() != null ? o.getDescription() : "-");
         }
 
         document.add(resolvedTable);

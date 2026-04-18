@@ -13,5 +13,6 @@ public record OccurrenceReportDTO(
         String resolvedBy,
         LocalDateTime resolvedAt,
         String canceledBy,
-        LocalDateTime canceledAt
+        LocalDateTime canceledAt,
+        String description
 ) {}
