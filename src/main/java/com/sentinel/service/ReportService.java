@@ -72,6 +72,8 @@ public class ReportService {
         return sb.toString();
     }
 
+
+
     // ✅ PDF
     public byte[] generatePdfReport() throws Exception {
         List<Occurrence> all = occurrenceRepository.findAll();
